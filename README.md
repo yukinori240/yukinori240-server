@@ -2,7 +2,7 @@
 import requests
 
 API_KEY = 'YOUR_API_KEY'
-BASE_URL = 'https://api.weatherapi.com/v1'
+BASE_URL = 'https://api.weatherapi.com/v1'?
 
 # 過去のデータ
 def get_past_weather(location, date):
