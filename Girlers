@@ -1,0 +1,44 @@
+pip install flask flask_sqlalchemyfrom flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+    gender = db.Column(db.String(10), nullable=False)from flask import Flask, request, jsonify
+from models import db, User
+from sqlalchemy.exc import IntegrityError
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sns.db'
+db.init_app(app)
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
+
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.json
+    if data.get('gender') != 'female':
+        return jsonify({'message': '女性のみ登録可能です。'}), 403
+    user = User(username=data['username'], password=data['password'], gender=data['gender'])
+    try:
+        db.session.add(user)
+        db.session.commit()
+        return jsonify({'message': '登録完了'})
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({'message': 'ユーザー名が既に存在します。'}), 400
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    user = User.query.filter_by(username=data['username'], password=data['password'], gender='female').first()
+    if user:
+        return jsonify({'message': 'ログイン成功'})
+    return jsonify({'message': '認証失敗 or 女性ユーザー以外は利用できません'}), 401
+
+if __name__ == '__main__':
+    app.run(debug=True)sqlalchemy.exc
