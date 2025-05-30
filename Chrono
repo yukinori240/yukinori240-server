@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>日付ファイルダウンロード</title>
+</head>
+<body>
+    <h1>日付ごとのファイルダウンロード</h1>
+    <form method="post">
+        <label>日付を選択:
+            <select name="date">
+                <option value="2000/01/01">2000/01/01</option>
+                <option value="2025/05/31">2025/05/31</option>
+                <option value="3000/12/31">3000/12/31</option>
+            </select>
+        </label>
+        <label>拡張子を選択:
+            <select name="ext">
+                <option value="txt">txt</option>
+                <option value="exe">exe</option>
+                <option value="html">html</option>
+            </select>
+        </label>
+        <button type="submit">ダウンロード</button>
+    </form>
+    {% if file_ready is not none and not file_ready %}
+        <p style="color:red;">指定のファイルは存在しません。</p>
+    {% endif %}
+</body>
+</html>from flask import Flask, render_template, request, send_from_directory, abort
+import os
+
+app = Flask(__name__)
+
+# ファイルマッピング
+file_map = {
+    ('2000/01/01', 'txt'): ('2000-01-01.txt', 'text/plain'),
+    ('2025/05/31', 'exe'): ('2025-05-31.exe', 'application/octet-stream'),
+    ('3000/12/31', 'html'): ('3000-12-31.html', 'text/html'),
+}
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    file_ready = None
+    if request.method == 'POST':
+        date = request.form['date']
+        ext = request.form['ext']
+        key = (date, ext)
+        if key in file_map:
+            filename, mimetype = file_map[key]
+            return send_from_directory('data', filename, as_attachment=True, mimetype=mimetype)
+        else:
+            file_ready = False
+    return render_template('index.html', file_ready=file_ready)
+
+if __name__ == '__main__':
+    app.run(debug=True)3000-12-31request.method2025-05-31.exe3000-12-31.htmlpip install flask flask_sqlalchemypip install flask
