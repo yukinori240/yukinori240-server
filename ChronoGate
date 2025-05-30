@@ -1,0 +1,80 @@
+import requests
+import pandas as pd
+from datetime import datetime, timedelta
+
+def download_weather_data(api_key, city, date_type="current"):
+    """
+    指定された都市の気象データをダウンロードする関数 (仮定)
+    実際にはAPIのエンドポイントやパラメータは異なります。
+
+    :param api_key: 気象APIのキー
+    :param city: 都市名
+    :param date_type: "past", "current", "future" のいずれか
+    :return: 取得したデータ (JSON形式の辞書)
+    """
+    base_url = "https://api.example.com/weather/" # 仮のAPIエンドポイント
+    params = {"q": city, "appid": api_key}
+    
+    if date_type == "current":
+        endpoint = f"{base_url}current"
+    elif date_type == "past":
+        # 過去データの取得 (例: 1週間前)
+        past_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        endpoint = f"{base_url}history?date={past_date}"
+    elif date_type == "future":
+        # 未来データの取得 (例: 5日間の予報)
+        endpoint = f"{base_url}forecast?days=5"
+    else:
+        raise ValueError("date_typeは'past', 'current', 'future'のいずれかを指定してください。")
+
+    try:
+        response = requests.get(endpoint, params=params)
+        response.raise_for_status() # HTTPエラーがあれば例外を発生
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"データのダウンロード中にエラーが発生しました: {e}")
+        return None
+
+def save_to_csv(data, filename):
+    """
+    辞書データをCSVファイルに保存する関数
+    :param data: 保存するデータ (JSON形式の辞書)
+    :param filename: 保存するファイル名
+    """
+    if data:
+        # データ構造に応じてDataFrameを構築
+        # ここはデータの実際の構造に合わせて調整が必要です
+        try:
+            df = pd.DataFrame([data]) # もしデータが単一の辞書の場合
+            # または、データがリストの辞書の場合: df = pd.DataFrame(data['results']) など
+            df.to_csv(filename, index=False, encoding='utf-8')
+            print(f"データを '{filename}' に保存しました。")
+        except Exception as e:
+            print(f"CSV保存中にエラーが発生しました: {e}")
+    else:
+        print("保存するデータがありません。")
+
+if __name__ == "__main__":
+    # --- 設定 ---
+    API_KEY = "YOUR_API_KEY" # 実際のAPIキーに置き換えてください
+    TARGET_CITY = "Tokyo"
+
+    # --- 現在のデータをダウンロード ---
+    print("現在のデータをダウンロード中...")
+    current_data = download_weather_data(API_KEY, TARGET_CITY, "current")
+    if current_data:
+        save_to_csv(current_data, "current_weather.csv")
+
+    # --- 過去のデータをダウンロード ---
+    print("\n過去のデータをダウンロード中...")
+    past_data = download_weather_data(API_KEY, TARGET_CITY, "past")
+    if past_data:
+        save_to_csv(past_data, "past_weather.csv")
+
+    # --- 未来のデータをダウンロード ---
+    print("\n未来のデータをダウンロード中...")
+    future_data = download_weather_data(API_KEY, TARGET_CITY, "future")
+    if future_data:
+        save_to_csv(future_data, "future_weather.csv")
+
+    print("\n全ての処理が完了しました。")
