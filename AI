@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI自動生成テキストアプリ</title>
+</head>
+<body>
+    <h1>AIが自動生成するアプリ</h1>
+    <form method="post">
+        <input type="text" name="prompt" placeholder="AIにお願いしたいことを入力" size="40" required>
+        <button type="submit">生成</button>
+    </form>
+    {% if generated_text %}
+        <h2>生成結果</h2>
+        <textarea rows="10" cols="60" readonly>{{ generated_text }}</textarea>
+        <form method="post" action="/download">
+            <input type="hidden" name="text" value="{{ generated_text }}">
+            <button type="submit">ダウンロード</button>
+        </form>
+    {% endif %}
+</body>
+</html>
