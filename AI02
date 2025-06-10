@@ -1,0 +1,55 @@
+import React, { useState } from 'react';
+
+export default function AIChat() {
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([]);
+
+  async function handleSend() {
+    if (!input.trim()) return;
+
+    // ユーザーの質問をメッセージに追加
+    setMessages((msgs) => [...msgs, { role: 'user', content: input }]);
+
+    // OpenAI API呼び出し
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer YOUR_OPENAI_API_KEY`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini', // GPTモデル
+        messages: [...messages, { role: 'user', content: input }]
+      })
+    });
+
+    const data = await response.json();
+    const aiMessage = data.choices[0].message.content;
+
+    // AIの返答をメッセージに追加
+    setMessages((msgs) => [...msgs, { role: 'assistant', content: aiMessage }]);
+    setInput('');
+  }
+
+  return (
+    <div style={{ maxWidth: 600, margin: 'auto', padding: 20 }}>
+      <div style={{ border: '1px solid #ccc', padding: 10, minHeight: 300, overflowY: 'auto' }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ margin: '10px 0', textAlign: m.role === 'user' ? 'right' : 'left' }}>
+            <b>{m.role === 'user' ? 'You' : 'AI'}:</b> {m.content}
+          </div>
+        ))}
+      </div>
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        style={{ width: '80%', padding: 8, marginRight: 8 }}
+        placeholder="質問を入力してください"
+      />
+      <button onClick={handleSend} style={{ padding: '8px 16px' }}>
+        送信
+      </button>
+    </div>
+  );
+}
